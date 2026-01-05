@@ -1,5 +1,6 @@
 import Navbar from "../components/Navbar";
-import Ascii from "../components/Ascii.jsx";
+import Ascii from "../components/Ascii";
+import NoteCard from "../components/NoteCard";
 import RateLimitedUI from "../components/RateLimited";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -9,19 +10,21 @@ const HomePage = () => {
     const [rateLimited, setRateLimited] = useState(false);
     const [notes, setNotes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
 
     useEffect(() => {
         const fetchNotes = async () => {
             try {
-                const res = await axios.get("http://localhost:5001/api/notes/");
+                const res = await axios.get("http://localhost:5001/api/notes");
                 setNotes(res.data);
                 setRateLimited(false);
             } catch (error) {
-                console.error("Error fetching notes");
+                console.error(error);
                 if(error.response?.status === 429) {
                     setRateLimited(true);
                 } else {
-                    toast.error("Failed to get notes");
+                    toast.error(error.response?.data?.message || "Error fetching notes");
+                    setError(true);
                 }
             } finally {
                 setLoading(false);
@@ -41,15 +44,13 @@ const HomePage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {notes.map((note) => (
                         <div>
-                            {note.title} | {note.content}
+                            <NoteCard key={note._id} note={note} />
                         </div>
                     ))}
                 </div>
             )}
 
-            {notes.length === 0 && !loading && !rateLimited && (
-                <Ascii />
-            )}
+            {notes.length === 0 && !error && !loading && <Ascii />}
         </div>
     </div>
 };
