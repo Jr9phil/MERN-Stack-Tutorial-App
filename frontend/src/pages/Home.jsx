@@ -2,7 +2,7 @@ import Navbar from "../components/Navbar";
 import NotesNotFound from "../components/NotesNotFound";
 import NoteCard from "../components/NoteCard";
 import RateLimitedUI from "../components/RateLimited";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import api from "../lib/axios";
 import toast from "react-hot-toast";
 import { LoaderIcon } from "lucide-react";
@@ -13,8 +13,13 @@ const HomePage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
+    const didFetchRef = useRef(false);
+
     useEffect(() => {
         const fetchNotes = async () => {
+            if (didFetchRef.current) return;
+            didFetchRef.current = true;
+
             try {
                 const res = await api.get("/notes");
                 setNotes(res.data);
